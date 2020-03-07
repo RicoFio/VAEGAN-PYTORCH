@@ -22,7 +22,7 @@ from tqdm import tqdm
 def parse_args():
     parser = argparse.ArgumentParser(description="VAEGAN")
     parser.add_argument("--img_size",default=64,action="store",type=int,dest="img_size")
-    parser.add_argument("--save_path",action="store",dest="train_folder")
+    parser.add_argument("--save_path",action="store",dest="save_path")
     parser.add_argument("--train_folder",action="store",dest="train_folder")
     parser.add_argument("--test_folder",action="store",dest="test_folder")
     parser.add_argument("--n_epochs",default=12,action="store",type=int,dest="n_epochs")
