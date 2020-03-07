@@ -76,13 +76,13 @@ if __name__ == "__main__":
     #mse_lambda = 1.0
     # OPTIM-LOSS
     # an optimizer for each of the sub-networks, so we can selectively backprop
-    optimizer_encoder = RMSprop(params=net.encoder.parameters(),lr=lr,alpha=0.9,eps=1e-8,weight_decay=0,momentum=0,centered=False)
+    optimizer_encoder = RMSprop(params=net.module.encoder.parameters(),lr=lr,alpha=0.9,eps=1e-8,weight_decay=0,momentum=0,centered=False)
     #lr_encoder = MultiStepLR(optimizer_encoder,milestones=[2],gamma=1)
     lr_encoder = ExponentialLR(optimizer_encoder, gamma=decay_lr)
-    optimizer_decoder = RMSprop(params=net.decoder.parameters(),lr=lr,alpha=0.9,eps=1e-8,weight_decay=0,momentum=0,centered=False)
+    optimizer_decoder = RMSprop(params=net.module.decoder.parameters(),lr=lr,alpha=0.9,eps=1e-8,weight_decay=0,momentum=0,centered=False)
     lr_decoder = ExponentialLR(optimizer_decoder, gamma=decay_lr)
     #lr_decoder = MultiStepLR(optimizer_decoder,milestones=[2],gamma=1)
-    optimizer_discriminator = RMSprop(params=net.discriminator.parameters(),lr=lr,alpha=0.9,eps=1e-8,weight_decay=0,momentum=0,centered=False)
+    optimizer_discriminator = RMSprop(params=net.module.discriminator.parameters(),lr=lr,alpha=0.9,eps=1e-8,weight_decay=0,momentum=0,centered=False)
     lr_discriminator = ExponentialLR(optimizer_discriminator, gamma=decay_lr)
     #lr_discriminator = MultiStepLR(optimizer_discriminator,milestones=[2],gamma=1)
 
@@ -191,26 +191,26 @@ if __name__ == "__main__":
 
             # BACKPROP
             # clean grads
-            net.zero_grad()
+            net.module.zero_grad()
             # encoder
             loss_encoder.backward(retain_graph=True)
             # someone likes to clamp the grad here
-            #[p.grad.data.clamp_(-1,1) for p in net.encoder.parameters()]
+            #[p.grad.data.clamp_(-1,1) for p in net.module.encoder.parameters()]
             # update parameters
             optimizer_encoder.step()
             # clean others, so they are not afflicted by encoder loss
-            net.zero_grad()
+            net.module.zero_grad()
             #decoder
             if train_dec:
                 loss_decoder.backward(retain_graph=True)
-                #[p.grad.data.clamp_(-1,1) for p in net.decoder.parameters()]
+                #[p.grad.data.clamp_(-1,1) for p in net.module.decoder.parameters()]
                 optimizer_decoder.step()
                 #clean the discriminator
-                net.discriminator.zero_grad()
+                net.module.discriminator.zero_grad()
             #discriminator
             if train_dis:
                 loss_discriminator.backward()
-                #[p.grad.data.clamp_(-1,1) for p in net.discriminator.parameters()]
+                #[p.grad.data.clamp_(-1,1) for p in net.module.discriminator.parameters()]
                 optimizer_discriminator.step()
 
             # LOGGING
