@@ -116,7 +116,7 @@ if __name__ == "__main__":
     if slurm:
         print(args)
     # for each epoch
-    for i in range(n_epochs):
+    for i in tqdm(range(n_epochs)):
         progress = progressbar.ProgressBar(min_value=0, max_value=batch_number, initial_value=0,
                                            widgets=widgets).start()
         # reset rolling average
