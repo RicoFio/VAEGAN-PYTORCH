@@ -19,6 +19,6 @@ def get_data_loader(img_size, train_folder, test_folder, batch_size_train, batch
     test_dataset = datasets.ImageFolder(root=test_folder, transform=my_transform)
 
     train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size_train, shuffle=True, num_workers=num_workers_train)
-    test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size_test, shuffle=True, num_workers=num_workers_test)
+    test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size_test, shuffle=False, num_workers=num_workers_test)
 
     return train_loader, test_loader

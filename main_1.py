@@ -19,14 +19,14 @@ from utils import RollingMeasure
 
 from tqdm import tqdm
 
-if __name__ == "__main__":
-
+def parse_args():
     parser = argparse.ArgumentParser(description="VAEGAN")
     parser.add_argument("--img_size",default=64,action="store",type=int,dest="img_size")
+    parser.add_argument("--save_path",action="store",dest="train_folder")
     parser.add_argument("--train_folder",action="store",dest="train_folder")
     parser.add_argument("--test_folder",action="store",dest="test_folder")
     parser.add_argument("--n_epochs",default=12,action="store",type=int,dest="n_epochs")
-    parser.add_argument("--n_batch_train",default=64,action="store",type=int,dest="n_batch_train")
+    parser.add_argument("--n_batch_train",default=256,action="store",type=int,dest="n_batch_train")
     parser.add_argument("--n_batch_test",default=100,action="store",type=int,dest="n_batch_test")
     parser.add_argument("--num_workers_train",default=4,action="store",type=int,dest="num_workers_train")
     parser.add_argument("--num_workers_test",default=1,action="store",type=int,dest="num_workers_test")
@@ -40,8 +40,12 @@ if __name__ == "__main__":
     parser.add_argument("--decay_margin",default=1,action="store",type=float,dest="decay_margin")
     parser.add_argument("--decay_equilibrium",default=1,action="store",type=float,dest="decay_equilibrium")
     parser.add_argument("--slurm",default=True,action="store",type=bool,dest="slurm")
+    return parser.parse_args()
 
-    args = parser.parse_args()
+if __name__ == "__main__":
+
+    args = parse_args()
+    save_path = args.save_path
     img_size = args.img_size
     train_folder = args.train_folder
     test_folder = args.test_folder
@@ -238,6 +242,10 @@ if __name__ == "__main__":
         lr_discriminator.step()
         margin *=decay_margin
         equilibrium *=decay_equilibrium
+        torch.save({
+            'epoch': step_index,
+            "net": net.module.state_dict()
+        }, save_path + f'model_epoch_{step_index}.tar')
         #margin non puo essere piu alto di equilibrium
         if margin > equilibrium:
             equilibrium = margin
@@ -254,7 +262,7 @@ if __name__ == "__main__":
         writer.add_scalar('gan_gen',gan_gen_eq_mean.measure,step_index)
         writer.add_scalar('gan_dis',gan_dis_eq_mean.measure,step_index)
 
-        for j, (data_batch,target_batch) in enumerate(dataloader_test):
+        with data_batch,target_batch in next(iter(dataloader_test)):
             net.eval()
 
             data_in = Variable(data_batch, requires_grad=False).float().to(device)
@@ -275,7 +283,6 @@ if __name__ == "__main__":
             out = (out + 1) / 2
             out = make_grid(out, nrow=8)
             writer.add_image("original", out, step_index)
-            break
 
         step_index += 1
     exit(0)
