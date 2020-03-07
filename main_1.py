@@ -147,6 +147,8 @@ if __name__ == "__main__":
                                                                          out_layer_predicted,out_layer_sampled, out_labels_original,
                                                                           out_labels_predicted,out_labels_sampled, mus,
                                                                          variances)
+
+            print("nle_value ", nle_value)
             # THIS IS THE MOST IMPORTANT PART OF THE CODE
             loss_encoder = torch.sum(kl_value)+torch.sum(mse_value_1)+torch.sum(mse_value_2)
             loss_discriminator = torch.sum(bce_dis_original_value) + torch.sum(bce_dis_sampled_value)+ torch.sum(bce_dis_predicted_value)

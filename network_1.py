@@ -153,7 +153,7 @@ class Discriminator(nn.Module):
 
         ten = ten.view(len(ten), -1)
         ten = self.fc(ten)
-        return layer_ten,F.sigmoid(ten)
+        return layer_ten,torch.sigmoid(ten)
 
 
     def __call__(self, *args, **kwargs):
