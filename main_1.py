@@ -6,6 +6,7 @@ torch.manual_seed(8)
 torch.cuda.manual_seed(8)
 from network_1 import VaeGan
 from torch.autograd import Variable
+import torch.nn as nn
 from torch.utils.data import Dataset
 from tensorboardX import SummaryWriter
 from torch.optim import RMSprop,Adam,SGD
@@ -15,6 +16,8 @@ from torchvision.utils import make_grid
 from generator import CELEBA,CELEBA_SLURM
 from dataset import get_data_loader
 from utils import RollingMeasure
+
+from tqdm import tqdm
 
 if __name__ == "__main__":
 
@@ -58,7 +61,9 @@ if __name__ == "__main__":
     slurm = args.slurm
 
     writer = SummaryWriter(comment="_CELEBA_ALL")
-    net = VaeGan(z_size=z_size,recon_level=recon_level).cuda()
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    net = VaeGan(z_size=z_size,recon_level=recon_level).to(device)
+    net = nn.DataParallel(net)
     # DATASET
     # dataloader = torch.utils.data.DataLoader(CELEBA(train_folder), batch_size=64,
     #                                          shuffle=True, num_workers=4)
@@ -122,13 +127,13 @@ if __name__ == "__main__":
         #print("LR:{}".format(lr_encoder.get_lr()))
 
         # for each batch
-        for j, (data_batch,target_batch) in enumerate(dataloader):
+        for j, (data_batch,target_batch) in tqdm(enumerate(dataloader)):
             # set to train mode
             train_batch = len(data_batch)
             net.train()
             # target and input are the same images
-            data_target = Variable(target_batch, requires_grad=False).float().cuda()
-            data_in = Variable(data_batch, requires_grad=False).float().cuda()
+            data_target = Variable(target_batch, requires_grad=False).float().to(device)
+            data_in = Variable(data_batch, requires_grad=False).float().to(device)
 
 
             # get output
@@ -252,8 +257,8 @@ if __name__ == "__main__":
         for j, (data_batch,target_batch) in enumerate(dataloader_test):
             net.eval()
 
-            data_in = Variable(data_batch, requires_grad=False).float().cuda()
-            data_target = Variable(target_batch, requires_grad=False).float().cuda()
+            data_in = Variable(data_batch, requires_grad=False).float().to(device)
+            data_target = Variable(target_batch, requires_grad=False).float().to(device)
             out = net(data_in)
             out = out.data.cpu()
             out = (out + 1) / 2
