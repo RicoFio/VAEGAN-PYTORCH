@@ -165,9 +165,9 @@ if __name__ == "__main__":
             # selectively disable the decoder of the discriminator if they are unbalanced
             train_dis = True
             train_dec = True
-            if torch.mean(bce_dis_original_value).data[0] < equilibrium-margin or torch.mean(bce_dis_sampled_value).data[0] < equilibrium-margin:
+            if torch.mean(bce_dis_original_value).data < equilibrium-margin or torch.mean(bce_dis_sampled_value).data < equilibrium-margin:
                 train_dis = False
-            if torch.mean(bce_dis_original_value).data[0] > equilibrium+margin or torch.mean(bce_dis_sampled_value).data[0] > equilibrium+margin:
+            if torch.mean(bce_dis_original_value).data > equilibrium+margin or torch.mean(bce_dis_sampled_value).data > equilibrium+margin:
                 train_dec = False
             if train_dec is False and train_dis is False:
                 train_dis = True
