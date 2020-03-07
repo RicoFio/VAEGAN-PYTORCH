@@ -13,14 +13,21 @@ from torch.optim.lr_scheduler import ExponentialLR,MultiStepLR
 import progressbar
 from torchvision.utils import make_grid
 from generator import CELEBA,CELEBA_SLURM
+from dataset import get_data_loader
 from utils import RollingMeasure
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="VAEGAN")
+    parser.add_argument("--img_size",default=64,action="store",type=int,dest="img_size")
     parser.add_argument("--train_folder",action="store",dest="train_folder")
     parser.add_argument("--test_folder",action="store",dest="test_folder")
     parser.add_argument("--n_epochs",default=12,action="store",type=int,dest="n_epochs")
+    parser.add_argument("--n_batch_train",default=64,action="store",type=int,dest="n_batch_train")
+    parser.add_argument("--n_batch_test",default=100,action="store",type=int,dest="n_batch_test")
+    parser.add_argument("--num_workers_train",default=4,action="store",type=int,dest="num_workers_train")
+    parser.add_argument("--num_workers_test",default=1,action="store",type=int,dest="num_workers_test")
+    
     parser.add_argument("--z_size",default=128,action="store",type=int,dest="z_size")
     parser.add_argument("--recon_level",default=3,action="store",type=int,dest="recon_level")
     parser.add_argument("--lambda_mse",default=1e-6,action="store",type=float,dest="lambda_mse")
@@ -29,10 +36,10 @@ if __name__ == "__main__":
     parser.add_argument("--decay_mse",default=1,action="store",type=float,dest="decay_mse")
     parser.add_argument("--decay_margin",default=1,action="store",type=float,dest="decay_margin")
     parser.add_argument("--decay_equilibrium",default=1,action="store",type=float,dest="decay_equilibrium")
-    parser.add_argument("--slurm",default=False,action="store",type=bool,dest="slurm")
+    parser.add_argument("--slurm",default=True,action="store",type=bool,dest="slurm")
 
     args = parser.parse_args()
-
+    img_size = args.img_size
     train_folder = args.train_folder
     test_folder = args.test_folder
     z_size = args.z_size
@@ -40,6 +47,10 @@ if __name__ == "__main__":
     decay_mse = args.decay_mse
     decay_margin = args.decay_margin
     n_epochs = args.n_epochs
+    n_batch_train = args.n_batch_train
+    n_batch_test = args.n_batch_test
+    num_workers_train = args.num_workers_train
+    num_workers_test = args.num_workers_test
     lambda_mse = args.lambda_mse
     lr = args.lr
     decay_lr = args.decay_lr
@@ -49,20 +60,11 @@ if __name__ == "__main__":
     writer = SummaryWriter(comment="_CELEBA_ALL")
     net = VaeGan(z_size=z_size,recon_level=recon_level).cuda()
     # DATASET
-    if not slurm:
-        dataloader = torch.utils.data.DataLoader(CELEBA(train_folder), batch_size=64,
-                                                 shuffle=True, num_workers=4)
-        # DATASET for test
-        # if you want to split train from test just move some files in another dir
-        dataloader_test = torch.utils.data.DataLoader(CELEBA(test_folder), batch_size=100,
-                                                      shuffle=False, num_workers=1)
-    else:
-        dataloader = torch.utils.data.DataLoader(CELEBA_SLURM(train_folder), batch_size=64,
-                                                 shuffle=True, num_workers=4)
-        # DATASET for test
-        # if you want to split train from test just move some files in another dir
-        dataloader_test = torch.utils.data.DataLoader(CELEBA_SLURM(test_folder), batch_size=100,
-                                                      shuffle=False, num_workers=1)
+    # dataloader = torch.utils.data.DataLoader(CELEBA(train_folder), batch_size=64,
+    #                                          shuffle=True, num_workers=4)
+    # dataloader_test = torch.utils.data.DataLoader(CELEBA(test_folder), batch_size=100,
+    #                                               shuffle=False, num_workers=1)
+    dataloader, dataloader_test = get_data_loader(img_size, train_folder, test_folder, n_batch_train, n_batch_test)
     #margin and equilibirum
     margin = 0.35
     equilibrium = 0.68
