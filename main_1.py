@@ -64,7 +64,7 @@ if __name__ == "__main__":
     #                                          shuffle=True, num_workers=4)
     # dataloader_test = torch.utils.data.DataLoader(CELEBA(test_folder), batch_size=100,
     #                                               shuffle=False, num_workers=1)
-    dataloader, dataloader_test = get_data_loader(img_size, train_folder, test_folder, n_batch_train, n_batch_test)
+    dataloader, dataloader_test = get_data_loader(img_size, train_folder, test_folder, n_batch_train, n_batch_test, num_workers_train, num_workers_test)
     #margin and equilibirum
     margin = 0.35
     equilibrium = 0.68
